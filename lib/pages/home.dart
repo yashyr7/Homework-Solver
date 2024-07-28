@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:slayschool_assesment/pages/solution.dart';
@@ -62,17 +61,6 @@ class _HomeState extends State<Home> {
     }
   }
 
-  // Format the recognized text by eliminating extra spaces and new lines
-  String formatText(String text) {
-    // Replace multiple new lines with a single new line
-    String formattedText = text.replaceAll(RegExp(r'\s+'), ' ');
-
-    // Trim leading and trailing whitespace
-    formattedText = formattedText.trim();
-
-    return formattedText;
-  }
-
   // Recognize text in the image
   Future<void> _recognizeText(File image) async {
     final baseImage = await image.readAsBytes();
@@ -88,11 +76,8 @@ class _HomeState extends State<Home> {
       body: body,
     );
 
-    print(response.body);
-
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes));
-      print(data);
       setState(() {
         _recognizedText = data['text'];
       });

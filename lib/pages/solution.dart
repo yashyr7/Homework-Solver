@@ -133,7 +133,7 @@ class _SolutionPageState extends State<SolutionPage> {
         {
           'role': 'user',
           'content':
-              'Can you give me the solution for this question? ${widget.question}'
+              'Can you give me the solution for this question? ${formatText(widget.question)}'
         }
       ]
     });
@@ -153,7 +153,6 @@ class _SolutionPageState extends State<SolutionPage> {
         print(questionResponse);
       } else {
         // Show an alert dialog if the request fails
-        print(response.body);
         showDialog(
           context: context,
           builder: (context) {
@@ -188,7 +187,7 @@ class _SolutionPageState extends State<SolutionPage> {
         {
           'role': 'user',
           'content':
-              'Can you give me 5 similar questions to this question? ${widget.question}'
+              'Can you give me 5 similar questions to this question? ${formatText(widget.question)}'
         }
       ]
     });
