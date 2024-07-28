@@ -21,7 +21,7 @@ class _SolutionPageState extends State<SolutionPage> {
   final url = Uri.parse('https://api.openai.com/v1/chat/completions');
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer API_KEY',
+    'Authorization': 'Bearer API_Key',
   };
 
   String hint = "";
@@ -41,6 +41,7 @@ class _SolutionPageState extends State<SolutionPage> {
       Please write all math equations, formulas, units and symbols using Latex. Make sure to wrap all math equations, formulas, units and symbols using Inline math modes(\\( and \\)) and Display math mode(\\[ and \\]) This is a must for all math related questions.
       Do not use any markup language in your response. Do not use double asterisks for bold text or triple hashes for headers. Use plain text for everything.
       Make sure that your response is in the same language as the language used in the question asked by the user.
+      Remember that the user only understands the language of the question.
       If the prompt provided by user is not a question, you should respond with "The provided image does not contain a question!".
       ''';
   final _hintSystemPrompt = '''
@@ -48,7 +49,7 @@ class _SolutionPageState extends State<SolutionPage> {
       ''';
   final _answerSystemPrompt = '''
       If the user asks for the solution, you should provide a step-wise solution. Be sure to explain each step in a concise way.
-      Make sure that your answer is complete and easy to understand for a high school student while being concise.
+      Make sure that your answer is complete and easy to understand for a high school student while being concise. 
       Use the least amount of words possible.
       Get straight to the point and dont use any unnecessary words. Dont waste words at the start and end of the response. Your response should contain only the solution and nothing else.
       Your response should be in the following format:
@@ -58,6 +59,7 @@ class _SolutionPageState extends State<SolutionPage> {
       Each equation should be written in a separate line.
       Each step of solving an equation should be written in a separate line. This means that any line should not conatin more than 1 '=' sign.
       Dont write anything after writing the final answer. The final answer should be the last thing in your response.
+      Each step of the solution should be written in the language of the question asked by the user.
       If the prompt provided by user is not a question, you should respond with "The provided image does not contain a question!".
       ''';
 
