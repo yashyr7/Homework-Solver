@@ -3,11 +3,10 @@ import 'dart:io';
 
 import 'package:document_file_save_plus/document_file_save_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:slayschool_assesment/commons.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
 class SolutionPage extends StatefulWidget {
@@ -31,7 +30,9 @@ class _SolutionPageState extends State<SolutionPage> {
   String questionResponse = "";
   bool isAnswerDisplayed = false;
 
-  final WidgetsToImageController _controller = WidgetsToImageController();
+  final WidgetsToImageController _questionController =
+      WidgetsToImageController();
+  final WidgetsToImageController _answerController = WidgetsToImageController();
   TextEditingController _fileNameController = TextEditingController();
 
   final _systemPrompt = '''
@@ -68,59 +69,6 @@ class _SolutionPageState extends State<SolutionPage> {
       Your response should only contain the 5 questions and nothing else numbered from 1 to 5.
       ''';
 
-  // Function to parse text with LaTeX
-  List<InlineSpan> parseTextWithLatex(String text) {
-    final regex = RegExp(r'(\\\(.+?\\\))|(\\\[.+?\\\])', dotAll: true);
-    final matches = regex.allMatches(text);
-
-    int currentIndex = 0;
-    List<InlineSpan> spans = [];
-
-    for (final match in matches) {
-      if (match.start > currentIndex) {
-        spans.add(
-          TextSpan(
-            text: text.substring(currentIndex, match.start),
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-            ),
-          ),
-        );
-      }
-      final latex = text.substring(match.start + 2, match.end - 2);
-      spans.add(
-        WidgetSpan(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5.0),
-            child: Math.tex(
-              latex,
-              textStyle: const TextStyle(
-                color: Colors.black,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ),
-      );
-      currentIndex = match.end;
-    }
-
-    if (currentIndex < text.length) {
-      spans.add(
-        TextSpan(
-          text: text.substring(currentIndex),
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 14,
-          ),
-        ),
-      );
-    }
-
-    return spans;
-  }
-
   // Function to get hint
   void getHint() async {
     final body = json.encode({
@@ -131,7 +79,7 @@ class _SolutionPageState extends State<SolutionPage> {
         {
           'role': 'user',
           'content':
-              'Can you give me a hint for this question? ${widget.question}'
+              'Can you give me a hint for this question? ${formatText(widget.question)}'
         }
       ]
     });
@@ -205,12 +153,13 @@ class _SolutionPageState extends State<SolutionPage> {
         print(questionResponse);
       } else {
         // Show an alert dialog if the request fails
+        print(response.body);
         showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
               title: const Text('Error'),
-              content: const Text('Failed to get hint'),
+              content: const Text('Failed to get answer'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -264,7 +213,7 @@ class _SolutionPageState extends State<SolutionPage> {
           builder: (context) {
             return AlertDialog(
               title: const Text('Error'),
-              content: const Text('Failed to get hint'),
+              content: const Text('Failed to get similar questions'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -287,15 +236,22 @@ class _SolutionPageState extends State<SolutionPage> {
   // Function to export the question and answer as a PDF
   Future<void> _exportPDF(String fileName) async {
     // Capture the image of the answer
-    final bytes = await _controller.capture();
-    if (bytes == null) {
+    final questionBytes = await _questionController.capture();
+    if (questionBytes == null) {
       print('Error capturing the image.');
       return;
     }
+    final questionImage = pw.MemoryImage(questionBytes);
+
+    // Capture the image of the answer
+    final answerBytes = await _answerController.capture();
+    if (answerBytes == null) {
+      print('Error capturing the image.');
+      return;
+    }
+    final answerImage = pw.MemoryImage(answerBytes);
 
     final pdf = pw.Document(); // Create a new PDF document
-
-    final image = pw.MemoryImage(bytes);
 
     // Add a new page to the PDF document
     pdf.addPage(
@@ -307,23 +263,27 @@ class _SolutionPageState extends State<SolutionPage> {
               pw.Text(
                 'Question:',
                 style: pw.TextStyle(
-                  fontSize: 14,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.Text(widget.question, style: const pw.TextStyle(fontSize: 12)),
-              pw.SizedBox(height: 10),
-              pw.Text(
-                'Answer:',
-                style: pw.TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
               pw.Image(
-                image,
+                questionImage,
                 width: 600,
-                height: 600,
+                height: 150,
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text(
+                'Answer:',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.Image(
+                answerImage,
+                width: 600,
+                height: 500,
               ),
             ],
           );
@@ -359,8 +319,17 @@ class _SolutionPageState extends State<SolutionPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                widget.question,
+              WidgetsToImage(
+                controller: _questionController,
+                child: RichText(
+                  text: TextSpan(
+                    children: parseTextWithLatex(widget.question),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -445,7 +414,7 @@ class _SolutionPageState extends State<SolutionPage> {
                 height: 20,
               ),
               WidgetsToImage(
-                controller: _controller,
+                controller: _answerController,
                 child: RichText(
                   text: TextSpan(
                     children: parseTextWithLatex(questionResponse),

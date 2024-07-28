@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:slayschool_assesment/commons.dart';
 import 'package:slayschool_assesment/pages/solution.dart';
 
 class History extends StatefulWidget {
@@ -34,7 +34,26 @@ class _HistoryState extends State<History> {
               ),
             );
           },
-          title: Text(widget.questionHistory[index]),
+          title: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.grey,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: RichText(
+              text: TextSpan(
+                children: parseTextWithLatex(widget.questionHistory[index]),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
         );
       },
     );
