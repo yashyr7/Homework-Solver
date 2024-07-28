@@ -20,6 +20,13 @@ class _HomeState extends State<Home> {
   File? _image;
   String _recognizedText = '';
 
+  final header = {
+    "Content-Type": "application/json",
+    "app_id": "slayschoolassignment_04ce39_5fbf5c",
+    "app_key":
+        "9262f4e45f120803eedb4bde6b8845e68e005904e8ecc1b85493aac067f5d0d5"
+  };
+
   Future<void> _pickImage(ImageSource source) async {
     // Pick an image from the gallery or take a picture
     final picker = ImagePicker();
@@ -56,7 +63,7 @@ class _HomeState extends State<Home> {
   }
 
   // Format the recognized text by eliminating extra spaces and new lines
-  Future<String> formatText(String text) async {
+  String formatText(String text) {
     // Replace multiple new lines with a single new line
     String formattedText = text.replaceAll(RegExp(r'\s+'), ' ');
 
@@ -68,18 +75,30 @@ class _HomeState extends State<Home> {
 
   // Recognize text in the image
   Future<void> _recognizeText(File image) async {
-    final inputImage = InputImage.fromFile(image);
-    final textDetector = TextRecognizer();
-    final RecognizedText recognisedText =
-        await textDetector.processImage(inputImage);
-    final cleanQuestion = await formatText(recognisedText.text);
-
-    setState(() {
-      _recognizedText = cleanQuestion;
+    final baseImage = await image.readAsBytes();
+    final String base64Image = base64Encode(baseImage);
+    final body = json.encode({
+      'src': 'data:image/png;base64,$base64Image',
+      'formats': ['text'],
     });
-    print(_recognizedText);
-    // Close the text detector to release resources
-    textDetector.close();
+
+    final http.Response response = await http.post(
+      Uri.parse('https://api.mathpix.com/v3/text'),
+      headers: header,
+      body: body,
+    );
+
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.bodyBytes));
+      print(data);
+      setState(() {
+        _recognizedText = data['text'];
+      });
+    } else {
+      throw Exception('Failed to get math equation from image');
+    }
   }
 
   @override
@@ -101,7 +120,10 @@ class _HomeState extends State<Home> {
             const SizedBox(height: 20),
             _image == null
                 ? const Text('No image selected.')
-                : Image.file(_image!),
+                : Image.file(
+                    _image!,
+                    height: 300,
+                  ),
             const SizedBox(height: 20),
             _image == null
                 ? Row(
