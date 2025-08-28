@@ -86,7 +86,7 @@ class _SolutionPageState extends State<SolutionPage> {
       ]
     });
     if (hint == "") {
-      // Make a POST request to the OpenAI API
+      // Make a POST request to OpenAI API
       final response = await http.post(url, headers: headers, body: body);
 
       if (response.statusCode == 200) {
