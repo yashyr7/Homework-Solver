@@ -23,7 +23,7 @@ class _HomeState extends State<Home> {
     "Content-Type": "application/json",
     "app_id": "slayschoolassignment_04ce39_5fbf5c",
     "app_key":
-        "9262f4e45f120803eedb4bde6b8845e68e005904e8ecc1b85493aac067f5d0d5"
+        "API_KEY_HERE"
   };
 
   Future<void> _pickImage(ImageSource source) async {
